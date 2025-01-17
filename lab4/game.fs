@@ -130,11 +130,8 @@ let renderGameState (state: GameState) : Canvas =
 
     canvas
 
-
-let renderGame (state: GameState) : Canvas = renderGameState state
-
 let rec gameLoop (state: GameState) : unit =
-    let canvas = renderGame state
+    let canvas = renderGameState state
     AnsiConsole.Cursor.SetPosition(0, 0)
     AnsiConsole.Profile.Height = 100 |> ignore // убрать потом, не понятно что делает
 
