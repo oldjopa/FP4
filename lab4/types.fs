@@ -14,7 +14,8 @@ type Direction =
     | LeftDown
 
 type Projectile =
-    { Direction: Direction
+    { Speed: int
+      Direction: Direction
       Position: Position }
 
 type Ship =
@@ -26,7 +27,8 @@ type EnemyPattern =
     { MoveDirection: Direction
       ShootDirection: Direction
       ShootInterval: int
-      MoveInterval: int }
+      MoveInterval: int
+      ShootSpeed: int }
 
 type Enemy =
     { Pattern: EnemyPattern
@@ -51,37 +53,31 @@ let createShip (x: int) (y: int) (color: Color) (hp: int) : Ship =
 
 let movePosition position direction =
     match direction with
-    | Left ->
-                { position with
-                    X = position.X - 1 } 
-    | Right ->
-                { position with
-                    X = position.X + 1 }
-    | Up ->
-                { position with
-                    Y = position.Y - 1 }
-    | Down ->
-                { position with
-                    Y = position.Y + 1 }
+    | Left -> { position with X = position.X - 1 }
+    | Right -> { position with X = position.X + 1 }
+    | Up -> { position with Y = position.Y - 1 }
+    | Down -> { position with Y = position.Y + 1 }
     | RightDown ->
-                { X = position.X + 1
-                  Y = position.Y + 1 }
+        { X = position.X + 1
+          Y = position.Y + 1 }
     | LeftDown ->
-                { X = position.X - 1
-                  Y = position.Y + 1 }
+        { X = position.X - 1
+          Y = position.Y + 1 }
 
 let moveShip (ship: Ship) (direction: Direction) : Ship =
-    {ship with Position = movePosition ship.Position direction}
+    { ship with
+        Position = movePosition ship.Position direction }
 
 let moveProjectile (projectile: Projectile) =
-    {projectile with Position = movePosition projectile.Position projectile.Direction}
+    { projectile with
+        Position = movePosition projectile.Position projectile.Direction }
 
-let shootProjectile (position: Position) (direction: Direction) : Projectile =
-    { Direction = direction
-      Position =
-        { X = position.X
-          Y = position.Y} } |> moveProjectile
-    
+let shootProjectile (position: Position) (direction: Direction) speed : Projectile =
+    { Speed = speed
+      Direction = direction
+      Position = { X = position.X; Y = position.Y } }
+    |> moveProjectile
+
 
 let moveProjectiles (projectiles: Projectile list) : Projectile list =
     projectiles
@@ -128,16 +124,16 @@ let detectCollisions (projectiles: Projectile list) (enemies: Enemy list) : Enem
     detectHit enemies projectiles enemies.Length
 
 
-let drawBorders (canvas: Canvas) : Canvas =
-    for x in 0 .. (canvas.Width - 1) do
+let drawBorders  (width: int) (heignt: int) (canvas: Canvas) : Canvas =
+    for x in 0 .. (width - 1) do
         canvas.SetPixel(x, 0, Color.Red) |> ignore
-        canvas.SetPixel(x, canvas.Height - 1, Color.Red) |> ignore
+        canvas.SetPixel(x, heignt - 1, Color.Red) |> ignore
 
-    for y in 0 .. (canvas.Height - 1) do
+    for y in 0 .. (heignt - 1) do
         canvas.SetPixel(0, y, Color.Green) |> ignore
-        canvas.SetPixel(canvas.Width - 1, y, Color.Green) |> ignore
+        canvas.SetPixel(width - 1, y, Color.Green) |> ignore
 
     canvas
 
 let positionInBorders position width height =
-    position.X < width && position.X > 0 && position.Y > 0 && position.Y < height
+    position.X < width-1 && position.X > 1 && position.Y > 0 && position.Y < height-1

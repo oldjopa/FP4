@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="types.fs" />
+    <Compile Include="static.fs" />
     <Compile Include="game.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
