@@ -1,5 +1,6 @@
 module Types
 
+open Consts
 open Spectre.Console
 
 // Типы данных
@@ -16,7 +17,8 @@ type Direction =
 type Projectile =
     { Speed: int
       Direction: Direction
-      Position: Position }
+      Position: Position
+      Color: Color }
 
 type Ship =
     { Position: Position
@@ -75,7 +77,8 @@ let moveProjectile (projectile: Projectile) =
 let shootProjectile (position: Position) (direction: Direction) speed : Projectile =
     { Speed = speed
       Direction = direction
-      Position = { X = position.X; Y = position.Y } }
+      Position = { X = position.X; Y = position.Y }
+      Color = if direction = Up then Color.Aqua else EnemyProjColor }
     |> moveProjectile
 
 
@@ -117,8 +120,8 @@ let detectCollisions (projectiles: Projectile list) (enemies: Enemy list) : Enem
             detectHit
                 (ReduceEnemyHpConditional
                     enemies
-                    (List.exists (fun (proj: Projectile) -> proj.Position = enemy.Ship.Position) projectiles))
-                (projectiles |> List.filter (fun p -> p.Position <> enemy.Ship.Position))
+                    (List.exists (fun (proj: Projectile) -> proj.Position = enemy.Ship.Position && proj.Color<>EnemyProjColor) projectiles))
+                (projectiles |> List.filter (fun p -> p.Position <> enemy.Ship.Position || (p.Color = EnemyProjColor && p.Position = enemy.Ship.Position)))
                 (count - 1)
 
     detectHit enemies projectiles enemies.Length
@@ -136,4 +139,4 @@ let drawBorders  (width: int) (heignt: int) (canvas: Canvas) : Canvas =
     canvas
 
 let positionInBorders position width height =
-    position.X < width-1 && position.X > 1 && position.Y > 0 && position.Y < height-1
+    position.X < width-1 && position.X > 0 && position.Y > 0 && position.Y < height-1

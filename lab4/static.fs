@@ -1,11 +1,21 @@
 module Static
 
+open Consts
 open Types
 open Spectre.Console
 
 
-let WIDTH = 40
-let HEIGHT = 40
+let defaultEnemyPattern =
+    { MoveDirection = RightDown
+      ShootDirection = Down
+      ShootInterval = 60
+      MoveInterval = 30
+      ShootSpeed = 10 }
+
+let defaultEnemy =
+    { Pattern = defaultEnemyPattern
+      Ship = createShip (WIDTH * 2 / 3) 1 Color.Red 1
+      HP = 1 }
 
 let drawHeart (x: int) (y: int) : (int * int) list =
     [ (x + 1, y)
@@ -31,55 +41,34 @@ let drawHeart (x: int) (y: int) : (int * int) list =
 
 
 let enemyMap =
-    [ (100,
-       [ { Pattern =
-             { MoveDirection = RightDown
-               ShootDirection = Down
-               ShootInterval = 60
-               MoveInterval = 30
-               ShootSpeed = 10 }
-           Ship = createShip (WIDTH * 2 / 3) 5 Color.Red 1
-           HP = 1 }
-         { Pattern =
-             { MoveDirection = Down
-               ShootDirection = Down
-               ShootInterval = 60
-               MoveInterval = 30
-               ShootSpeed = 10 }
-           Ship = createShip (WIDTH / 2) 5 Color.Red 1
-           HP = 1 }
-         { Pattern =
-             { MoveDirection = LeftDown
-               ShootDirection = Down
-               ShootInterval = 60
-               MoveInterval = 30
-               ShootSpeed = 10 }
-           Ship = createShip (WIDTH / 3) 5 Color.Red 1
-           HP = 1 } ])
-      (300,
-       [ { Pattern =
-             { MoveDirection = RightDown
-               ShootDirection = Down
-               ShootInterval = 60
-               MoveInterval = 30
-               ShootSpeed = 10 }
-           Ship = createShip (WIDTH * 2 / 3) 5 Color.Red 1
-           HP = 1 }
-         { Pattern =
-             { MoveDirection = Down
-               ShootDirection = Down
-               ShootInterval = 60
-               MoveInterval = 30
-               ShootSpeed = 10 }
-           Ship = createShip (WIDTH / 2) 5 Color.Red 1
-           HP = 1 }
-         { Pattern =
-             { MoveDirection = LeftDown
-               ShootDirection = Down
-               ShootInterval = 60
-               MoveInterval = 30
-               ShootSpeed = 10 }
-           Ship = createShip (WIDTH / 3) 5 Color.Red 1
-           HP = 1 } ])
-
-      ]
+    [
+    (300,
+       [    { defaultEnemy with
+                Pattern.MoveDirection = RightDown 
+                Ship = {defaultEnemy.Ship with Ship.Position.X = (WIDTH * 2 / 3)}} 
+            { defaultEnemy with
+                Pattern.MoveDirection = Down 
+                Ship = {defaultEnemy.Ship with Ship.Position.X = (WIDTH / 2)}}
+            { defaultEnemy with
+                Pattern.MoveDirection = LeftDown 
+                Ship = {defaultEnemy.Ship with Ship.Position.X = (WIDTH  / 3)}}
+        ]) 
+    (550,
+       [    { defaultEnemy with
+                Pattern.MoveDirection = LeftDown 
+                Ship = {defaultEnemy.Ship with Ship.Position.X = (WIDTH * 2 / 3)}} 
+            { defaultEnemy with
+                Pattern.MoveDirection = RightDown 
+                Ship = {defaultEnemy.Ship with Ship.Position.X = (WIDTH  / 3)}}
+        ])
+    (1050,
+       [    { defaultEnemy with
+                Pattern.MoveDirection = RightDown 
+                Pattern.MoveInterval = 20
+                Ship = {defaultEnemy.Ship with Ship.Position.X = (WIDTH * 2 / 3)}} 
+            { defaultEnemy with
+                Pattern.MoveDirection = RightDown 
+                Pattern.MoveInterval = 20
+                Ship = {defaultEnemy.Ship with Ship.Position.X = (WIDTH  / 3)}}
+        ])
+    ]

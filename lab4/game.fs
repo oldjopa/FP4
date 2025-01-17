@@ -4,6 +4,7 @@ open System
 open Spectre.Console
 open Types
 open Static
+open Consts
 open System.Threading
 
 
@@ -11,31 +12,7 @@ open System.Threading
 let initGame () : GameState =
     let player = createShip 10 35 Color.Cyan1 3
 
-    let enemies =
-        [ { Pattern =
-              { MoveDirection = RightDown
-                ShootDirection = Down
-                ShootInterval = 60
-                MoveInterval = 30
-                ShootSpeed = 10 }
-            Ship = createShip (WIDTH*2/3) 5 Color.Red 1
-            HP = 1 }
-          { Pattern =
-              { MoveDirection = Down
-                ShootDirection = Down
-                ShootInterval = 60
-                MoveInterval = 30
-                ShootSpeed = 10 }
-            Ship = createShip (WIDTH/2) 5 Color.Red 1
-            HP = 1 }
-          { Pattern =
-              { MoveDirection = LeftDown
-                ShootDirection = Down
-                ShootInterval = 60
-                MoveInterval = 30
-                ShootSpeed = 10 }
-            Ship = createShip (WIDTH/3) 5 Color.Red 1
-            HP = 1 } ]
+    let enemies = []
 
     let projectiles = []
     let score = 0
@@ -76,12 +53,12 @@ let updateGameState (state: GameState) : GameState =
                     proj)
             |> List.filter (fun proj -> positionInBorders proj.Position state.Widht state.Height)
 
-        let (hitEnemies: Enemy list), (remainingProjectiles: Projectile list) =
+        let (remainingEnemies: Enemy list), (remainingProjectiles: Projectile list) =
             detectCollisions updatedProjectiles state.Enemies
 
         let updatedEnemies =
             // List.filter (fun enemy -> not (List.contains enemy hitEnemies)) state.Enemies
-            hitEnemies
+            remainingEnemies
             |> List.filter (fun enemy -> positionInBorders enemy.Ship.Position state.Widht state.Height)
             |> List.filter (fun enemy -> enemy.HP > 0)
             |> List.map (fun enemy ->
@@ -90,33 +67,48 @@ let updateGameState (state: GameState) : GameState =
                         Ship = moveShip enemy.Ship enemy.Pattern.MoveDirection }
                 else
                     enemy)
-        
-        let updatedPlayer = {state.Player with HP = state.Player.HP - (updatedProjectiles |> List.filter (fun p -> p.Position = state.Player.Position) |> List.length)}
+
+        let updatedPlayer =
+            { state.Player with
+                HP =
+                    state.Player.HP
+                    - (updatedProjectiles
+                       |> List.filter (fun p -> p.Position = state.Player.Position)
+                       |> List.length) }
 
         let newProjectiles =
             updatedEnemies
             |> List.fold
                 (fun (acc: Projectile list) enemy ->
                     if state.Tick % enemy.Pattern.ShootInterval = 0 then
-                        acc @ [ shootProjectile enemy.Ship.Position enemy.Pattern.ShootDirection enemy.Pattern.ShootSpeed]
+                        acc
+                        @ [ shootProjectile enemy.Ship.Position enemy.Pattern.ShootDirection enemy.Pattern.ShootSpeed ]
                     else
                         acc)
                 remainingProjectiles
             |> List.filter (fun p -> p.Position <> state.Player.Position)
 
-        let updatedScore = state.Score + List.length state.Enemies - List.length updatedEnemies
+        let updatedScore =
+            state.Score + List.length state.Enemies - List.length updatedEnemies
 
         { state with
             Player = updatedPlayer
-            Enemies = updatedEnemies @ (enemyMap |> List.filter (fun x -> state.Tick % (fst x) = 0 ) |> List.map (fun x -> snd x) |> List.fold (@) [])
+            Enemies =
+                updatedEnemies
+                @ (enemyMap
+                   |> List.filter (fun x -> state.Tick % (fst x) = 0)
+                   |> List.map (fun x -> snd x)
+                   |> List.fold (@) [])
             Projectiles = newProjectiles
-            Score = updatedScore 
-            Tick = state.Tick + 1}
+            Score = updatedScore
+            Tick = state.Tick + 1 }
 
 
 
 let renderGameState (state: GameState) : Canvas =
-    let canvas = new Canvas(state.Widht, state.Height + 6) |> drawBorders state.Widht state.Height
+    let canvas =
+        new Canvas(state.Widht, state.Height + 6)
+        |> drawBorders state.Widht state.Height
 
     canvas.SetPixel(state.Player.Position.X, state.Player.Position.Y, state.Player.Color)
     |> ignore
@@ -130,10 +122,11 @@ let renderGameState (state: GameState) : Canvas =
     state.Projectiles
     |> List.iter (fun proj ->
         if positionInBorders proj.Position state.Widht state.Height then
-            canvas.SetPixel(proj.Position.X, proj.Position.Y, Color.White) |> ignore)
-    
-    for i in [0 .. state.Player.HP - 1] do
-        drawHeart (8*i) (state.Height + 1) |> List.iter (fun p -> canvas.SetPixel((fst p), (snd p), Color.Red) |> ignore)
+            canvas.SetPixel(proj.Position.X, proj.Position.Y, proj.Color) |> ignore)
+
+    for i in [ 0 .. state.Player.HP - 1 ] do
+        drawHeart (8 * i) (state.Height + 1)
+        |> List.iter (fun p -> canvas.SetPixel((fst p), (snd p), Color.Red) |> ignore)
 
     canvas
 

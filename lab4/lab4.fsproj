@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="consts.fs" />
     <Compile Include="types.fs" />
     <Compile Include="static.fs" />
     <Compile Include="game.fs" />
